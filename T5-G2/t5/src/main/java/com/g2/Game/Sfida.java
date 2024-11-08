@@ -34,8 +34,8 @@ public class Sfida extends GameLogic {
 
     //Questa classe si specializza in una partita semplice basata sui turni, prende il nome di Sfida nella UI
     public Sfida(ServiceManager serviceManager, String PlayerID, String ClasseUT,
-                                String type_robot, String difficulty, String mode) {
-        super(serviceManager, PlayerID, ClasseUT, type_robot, difficulty, mode);
+                                String type_robot, String difficulty, String gamemode) {
+        super(serviceManager, PlayerID, ClasseUT, type_robot, difficulty, gamemode);
         currentTurn = 0;
     }
 
@@ -58,8 +58,7 @@ public class Sfida extends GameLogic {
         if (coverage == 0) {
             return 0;
         }
-
-        // Calcolo della percentuale della posizione
+        // Calcolo della percentuale
         double locPerc = ((double) coverage) / 100;
         // Penalità crescente per ogni turno aggiuntivo
         double penaltyFactor = Math.pow(0.9, currentTurn);

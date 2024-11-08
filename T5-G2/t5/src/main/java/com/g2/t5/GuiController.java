@@ -23,31 +23,41 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.g2.Model.*;
-import com.g2.Service.AchievementService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.LocaleResolver;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.g2.Components.GenericObjectComponent;
 import com.g2.Components.PageBuilder;
 import com.g2.Components.ServiceObjectComponent;
 import com.g2.Components.VariableValidationLogicComponent;
 import com.g2.Interfaces.ServiceManager;
+import com.g2.Model.AchievementProgress;
 import com.g2.Model.ClassUT;
 import com.g2.Model.Game;
 import com.g2.Model.ScalataGiocata;
+import com.g2.Model.Statistic;
+import com.g2.Model.StatisticProgress;
 import com.g2.Model.User;
+import com.g2.Service.AchievementService;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -100,10 +110,9 @@ public class GuiController {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
             Map<String, Object> map = mapper.readValue(decodedUserJson, Map.class);
-
             String userId = map.get("userId").toString();
-
             return profilePage(model, userId, jwt);
         }
         catch (Exception e) {
@@ -124,7 +133,6 @@ public class GuiController {
 
         List<AchievementProgress> achievementProgresses = achievementService.getProgressesByPlayer(userId);
         List<StatisticProgress> statisticProgresses = achievementService.getStatisticsByPlayer(userId);
-
         List<Statistic> allStatistics = achievementService.getStatistics();
         Map<String, Statistic> IdToStatistic = new HashMap<>();
 
@@ -292,9 +300,14 @@ public class GuiController {
     }
 
     @PostMapping("/save-data")
-    public ResponseEntity<String> saveGame(@RequestParam("playerId") int playerId, @RequestParam("robot") String robot,
-            @RequestParam("classe") String classe, @RequestParam("difficulty") String difficulty, @RequestParam("gamemode") String gamemode,
-            @RequestParam("username") String username, @RequestParam("selectedScalata") Optional<Integer> selectedScalata, HttpServletRequest request) {
+    public ResponseEntity<String> saveGame(@RequestParam("playerId") int playerId, 
+                                            @RequestParam("robot") String robot,
+                                            @RequestParam("classe") String classe, 
+                                            @RequestParam("difficulty") String difficulty, 
+                                            @RequestParam("gamemode") String gamemode,
+                                            @RequestParam("username") String username, 
+                                            @RequestParam("selectedScalata") Optional<Integer> selectedScalata, 
+                                            HttpServletRequest request) {
 
         if (!request.getHeader("X-UserID").equals(String.valueOf(playerId))) {
             return ResponseEntity.badRequest().body("Unauthorized");

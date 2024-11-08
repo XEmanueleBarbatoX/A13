@@ -14,17 +14,15 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-
 package com.g2.Interfaces;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.g2.Model.Game;
 import com.g2.Model.StatisticProgress;
-import com.g2.Model.User;
 import org.springframework.core.ParameterizedTypeReference;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -45,16 +43,6 @@ public class T4Service extends BaseService {
         // Inizializzazione del servizio base con RestTemplate e URL specificato
         super(restTemplate, BASE_URL);
 
-        // Registrazione dell'azione "getLevels" con una definizione specifica per
-        // questa azione
-        registerAction("getLevels", new ServiceActionDefinition(
-                // Definizione di un'operazione lambda che invoca il metodo getLevels con un
-                // parametro di tipo String
-                params -> getLevels((String) params[0]),
-                // L'azione è definita per accettare un parametro di tipo String
-                String.class
-        ));
-
         registerAction("getGames", new ServiceActionDefinition(
                 params -> getGames((int) params[0]),
                 Integer.class
@@ -64,6 +52,10 @@ public class T4Service extends BaseService {
                 params -> getStatisticsProgresses((int) params[0]),
                 Integer.class
         ));
+
+        registerAction("updateStatisticProgress", new ServiceActionDefinition(
+                params -> updateStatisticProgress((int) params[0], (String) params[1], (float) params[2]),
+                Integer.class, String.class, Float.class));
 
         registerAction("CreateGame", new ServiceActionDefinition(
                 params -> CreateGame((String) params[0], (String) params[1], (String) params[2], (String) params[3],
@@ -103,19 +95,29 @@ public class T4Service extends BaseService {
     // usa /games per ottenere una lista di giochi
     private List<Game> getGames(int playerId) {
         final String endpoint = "/games/player/" + playerId;
-            return callRestGET(endpoint, null, new ParameterizedTypeReference<List<Game>>() {});
-            // Gestione degli errori durante la richiesta
-            throw new IllegalArgumentException("[GETGAMES] Errore durante il recupero dei giochi: " + e.getMessage());
+        return callRestGET(endpoint, null, new ParameterizedTypeReference<List<Game>>() {
+        });
     }
 
     private List<StatisticProgress> getStatisticsProgresses(int playerID) {
-            Map<String, String> formData = new HashMap<>();
-            formData.put("pid", String.valueOf(playerID));
+        Map<String, String> formData = new HashMap<>();
+        formData.put("pid", String.valueOf(playerID));
 
-            String endpoint = "/phca/" + playerID;
+        String endpoint = "/phca/" + playerID;
 
-            List<StatisticProgress> response = callRestGET(endpoint, formData, new ParameterizedTypeReference<List<StatisticProgress>>() {});
-            return response;
+        List<StatisticProgress> response = callRestGET(endpoint, formData, new ParameterizedTypeReference<List<StatisticProgress>>() {
+        });
+        return response;
+    }
+
+    private String updateStatisticProgress(int playerID, String statisticID, float progress) {
+        MultiValueMap<String, String> jsonMap = new LinkedMultiValueMap<>();
+        jsonMap.put("playerId", Collections.singletonList(String.valueOf(playerID)));
+        jsonMap.put("statistic", Collections.singletonList(statisticID));
+        jsonMap.put("progress", Collections.singletonList(String.valueOf(progress)));
+        String endpoint = "/phca/" + playerID + "/" + statisticID;
+        String response = callRestPut(endpoint, jsonMap, new HashMap<>(), String.class);
+        return response;
     }
 
     // usa /robots per ottenere dati 
